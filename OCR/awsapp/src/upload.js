@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import FileBase64 from 'react-file-base64';
-import { Form, Button, FormGroup, Label, FormText, Input } from "reactstrap"
+import { Form, FormGroup, Label, FormText, Input } from "reactstrap"
 import "./upload.css"
 import axios from "axios";
 
@@ -10,8 +10,8 @@ class Upload extends Component {
         super(props)
 
         this.state = {
-            confirmation: "",
-            isLoading: "",
+            // confirmation: "",
+            // isLoading: "",
             files: "",
             ppsn: "",
             lambdaReturn: "",
@@ -19,9 +19,13 @@ class Upload extends Component {
             firstName: "",
             ppsnPresent: false,
             lastNamePresent: false,
-            firstNamePresent: false
+            firstNamePresent: false,
+            // focus: false,
+            // error: false,
+            disabled: true
         };
         this.handleChange = this.handleChange.bind(this);
+        this._onKeyUp = this._onKeyUp.bind(this)
     }
 
     handleChange = (e) => {
@@ -30,15 +34,20 @@ class Upload extends Component {
         const name = e.target.name
         this.setState({ [name]: value })
     }
+    _onKeyUp() {
 
+        setTimeout(() => {
+            let regex = /[0-9]{7}[A-Za-z]{1}/g;
 
-    // async handleSubmit(e) {
-    //     e.preventDefault();
-    //     // }
+            if (this.state.ppsn.match(regex)) {
+                this.setState({ disabled: false })
 
+            }
+        }, 0)
+    }
 
     async getFiles(files) {
-        const { ppsn, lambdaReturn, firstName, lastName } = this.state
+        const { ppsn, firstName, lastName } = this.state
         this.setState({
             isLoading: "Extracting Data",
             files: files
@@ -68,8 +77,6 @@ class Upload extends Component {
                 console.log(error)
             });
 
-        const targetImage = UID + "png";
-        var self = this
         axios("https://6velcmlhx7.execute-api.us-east-1.amazonaws.com/Production/ocr", {
 
             method: "POST",
@@ -80,15 +87,17 @@ class Upload extends Component {
                 console.log("OCR", response)
                 this.setState({ lambdaReturn: response.data.body[0] })
 
-                console.log("responseData", response.data.body)
-                console.log("lambdaState", lambdaReturn)
+                if (ppsn !== "") {
+                    this.setState({ ppsnPresent: response.data.body[1] })
+                }
 
+                if (firstName !== "") {
+                    this.setState({ firstNamePresent: response.data.body[2] })
+                }
 
-
-
-                // this.setState({ ppsnPresent: response.data.body[1] })
-                // this.setState({ firstNamePresent: response.data.body[2] })
-                // this.setState({ lastNamePresent: response.data.body[3] })
+                if (lastName !== "") {
+                    this.setState({ lastNamePresent: response.data.body[3] })
+                }
             })
 
             .catch(error => {
@@ -96,37 +105,10 @@ class Upload extends Component {
                 alert("Please refresh the browser and try again")
             });
 
-
-        // console.log(ppsn)
-        // console.log(firstName)
-        // console.log(lastName)
-        console.log("lambdaState", lambdaReturn)
-
-        // let pattern1 = new RegExp(ppsn)
-        // let checkPatternLambda1 = pattern1.test(lambdaReturn)
-
-        // // let regtest = /([0-9]{6,7})?[A-Za-z]{1}/
-        // // let regtest1 = regtest.test(lambdaReturn)
-        // // console.log("regtest", regtest1)
-        // if (checkPatternLambda1 === true && ppsn !== "") {
-        //     this.setState({ ppsnPresent: true })
-        // }
-
-        // let pattern2 = new RegExp(lastName)
-        // let checkPatternLambda2 = pattern2.test(lambdaReturn)
-        // if (checkPatternLambda2 && lastName !== "") {
-        //     this.setState({ lastNamePresent: true })
-        // }
-
-        // let pattern3 = new RegExp(firstName)
-        // let checkPatternLambda3 = pattern3.test(lambdaReturn)
-        // if (checkPatternLambda3 && firstName !== "") {
-        //     this.setState({ firstNamePresent: true })
-        // }
     }
 
     render() {
-
+        const { ppsnPresent, lastNamePresent, firstNamePresent } = this.state
         const processing = "Processing document . . .";
         return (
             <div className="container">
@@ -141,15 +123,17 @@ class Upload extends Component {
                                         type="text"
                                         name="ppsn"
                                         id="ppsn"
+                                        placeholder="(e.g. 1234567P)"
                                         onChange={this.handleChange}
-                                        pattern="[0-9]{7}[A-Za-z]{1}"
-                                        title="Required: 7 digits followed by a letter (1234567P)"
+                                        onKeyUp={this._onKeyUp}
+
+
                                     />
                                     <h6> PPSN PRESENT . . .  </h6>
                                     <Label check>
                                         <input
                                             type="checkbox"
-                                            checked={this.state.ppsnPresent}
+                                            checked={ppsnPresent}
                                             onChange={this.handleChange}
                                         />
 
@@ -166,7 +150,9 @@ class Upload extends Component {
                                         type="text"
                                         name="lastName"
                                         id="lastName"
+                                        placeholder="(Bloggs)"
                                         onChange={this.handleChange}
+                                        disabled={this.state.disabled}
 
 
                                     />
@@ -174,7 +160,7 @@ class Upload extends Component {
                                     <Label check>
                                         <input
                                             type="checkbox"
-                                            checked={this.state.lastNamePresent}
+                                            checked={lastNamePresent}
                                             onChange={this.handleChange}
                                         />
 
@@ -191,14 +177,16 @@ class Upload extends Component {
                                         type="text"
                                         name="firstName"
                                         id="firstName"
+                                        placeholder="(Joe)"
                                         onChange={this.handleChange}
+                                        disabled={this.state.disabled}
 
                                     />
                                     <h6> FIRST NAME PRESENT . . .  </h6>
                                     <Label check>
                                         <input
                                             type="checkbox"
-                                            checked={this.state.firstNamePresent}
+                                            checked={firstNamePresent}
                                             onChange={this.handleChange}
                                         />
 
