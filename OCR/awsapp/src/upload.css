@@ -1,5 +1,5 @@
 .files input {
-    outline: 2px dashed #92b0b3;
+    outline: 2px dashed #0085b0;
     outline-offset: -10px;
     -webkit-transition: outline-offset .15s ease-in-out, background-color .15s linear;
     transition: outline-offset .15s ease-in-out, background-color .15s linear;
@@ -52,7 +52,7 @@
     content: " or drag it here. ";
     display: block;
     margin: 0 auto;
-    color: #2ea591;
+    color: #0085b0;
     font-weight: 600;
     text-transform: capitalize;
     text-align: center;
